@@ -65,9 +65,31 @@ let street = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     } else if (depth > 10) {
       return '#91cf60';  // Light Green
     } else {
-      return '#1a9850';  // Green
+      return '#1a9850';  // Green for depths <= 10, including negatives
     }
   }
+
+  // Create a legend control
+  let legend = L.control({ position: "bottomright" });
+
+  legend.onAdd = function() {
+  let div = L.DomUtil.create('div', 'info legend'),
+      depths = [-10, 10, 30, 50, 70, 90],
+      labels = [];
+  
+  // Add title to the legend
+  div.innerHTML += '<strong>Depth (km)</strong><br>';
+
+  // Loop through the depth intervals and generate a label with a colored square for each interval
+  for (let i = 0; i < depths.length; i++) {
+    div.innerHTML +=
+      '<i style="background-color:' + getColorByDepth(depths[i] + 1) + 
+      '; width: 18px; height: 18px; display: inline-block; margin-right: 8px;"></i> ' +
+      depths[i] + (depths[i + 1] ? '&ndash;' + depths[i + 1] + '<br>' : '+');
+  }
+
+  return div;
+};
   
   // Define baseMaps object to hold the base layers
   let baseMaps = {
@@ -82,8 +104,8 @@ let street = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   
   // Create the map object, initialize with the street map and earthquake markers
   let myMap = L.map("map", {
-    center: [37.09, -95.71],  // US-centered
-    zoom: 5,
+    center: [0, 0],  // World map view
+    zoom: 2,
     layers: [street, earthquakeMarkers]  // Default layers
   });
   
@@ -91,3 +113,5 @@ let street = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   L.control.layers(baseMaps, overlayMaps, {
     collapsed: false  // Keep the layer control expanded
   }).addTo(myMap);
+
+  legend.addTo(myMap);
